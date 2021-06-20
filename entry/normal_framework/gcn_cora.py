@@ -175,20 +175,6 @@ def test2(model, epoch):
     return correct
 
 
-def testb(model):
-    model.eval()
-    with torch.no_grad():
-        correct = 0
-        for data, target in test_b_loader:
-            data, target = data.to(device), target.to(device)
-            data, target = Variable(data), Variable(target)
-            output = model(data)
-            pred = output.data.max(1, keepdim=True)[1].view(-1)
-            correct += sum((pred == target).tolist())
-        print("Accuracy:", correct / len(test_loader.dataset))
-    return correct
-
-
 def extract_embedding(model, g, features, labels, mask):
 
     ret = {"embedding": [], "target": []}
