@@ -872,5 +872,5 @@ for i in range(n):
         t = round(time.time() - t0)
         print("time consumed: {} min {} sec".format(t // 60, t % 60))
 
-    file_name = "scores_vgg16_v20_important_feature_ADAM_permutation_wopretrained.pkl"
+    file_name = "results/scores_vgg16_v20_important_feature_ADAM_permutation_wopretrained.pkl"
     pickle.dump(scores, open(file_name, "wb"))
