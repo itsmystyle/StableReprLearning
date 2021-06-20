@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # coding: utf-8
 from __future__ import print_function
-import pickle, sys, time, copy
+import pickle
+import sys
+import time
+import copy
 
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data as Data
 import torchvision
-import torchvision.models as models
-import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from torch.autograd import Variable
 from torchvision import datasets, transforms
@@ -25,7 +25,7 @@ kwargs = {}
 emb_size = 256
 es_thd = int(sys.argv[2])
 n = int(sys.argv[1])
-_image_path = 'caches/stl10/'
+_image_path = "caches/stl10/"
 
 # STL10
 # ['airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck']
@@ -54,30 +54,26 @@ transform_train = transforms.Compose(
     ]
 )
 
-transform_test = transforms.Compose(
-    [
-        transforms.Resize(32),
-        transforms.ToTensor(),
-    ]
-)
+transform_test = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
+
 
 def get_stl10():
     train_loader = torch.utils.data.DataLoader(
-        datasets.STL10("data", split='train', download=True, transform=transform_test),
+        datasets.STL10("data", split="train", download=True, transform=transform_test),
         batch_size=args["batch_size"],
         num_workers=8,
         shuffle=False,
         **kwargs,
     )
     test_loader = torch.utils.data.DataLoader(
-        datasets.STL10("data", split='test', transform=transform_test),
+        datasets.STL10("data", split="test", transform=transform_test),
         batch_size=args["batch_size"] * 4,
         num_workers=8,
         shuffle=False,
         **kwargs,
     )
     unlabel_loader = torch.utils.data.DataLoader(
-        datasets.STL10("data", split='unlabeled', transform=transform_train),
+        datasets.STL10("data", split="unlabeled", transform=transform_train),
         batch_size=args["batch_size"],
         num_workers=8,
         shuffle=True,
@@ -101,11 +97,11 @@ class Autoencoder(nn.Module):
         self.dim = emb_size
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(3, 32, 4, stride=2, padding=1),            # [batch, 12, 16, 16]
+            nn.Conv2d(3, 32, 4, stride=2, padding=1),  # [batch, 12, 16, 16]
             nn.ReLU(True),
-            nn.Conv2d(32, 64, 4, stride=2, padding=1),           # [batch, 24, 8, 8]
+            nn.Conv2d(32, 64, 4, stride=2, padding=1),  # [batch, 24, 8, 8]
             nn.ReLU(True),
-			nn.Conv2d(64, 128, 4, stride=2, padding=1),           # [batch, 48, 4, 4]
+            nn.Conv2d(64, 128, 4, stride=2, padding=1),  # [batch, 48, 4, 4]
             nn.ReLU(True),
         )
         self.fc1 = nn.Linear(2048, self.dim)
@@ -114,11 +110,11 @@ class Autoencoder(nn.Module):
             nn.Linear(self.dim, 2048),
             Reshape(-1, 128, 4, 4),
             nn.ReLU(True),
-			nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1),  # [batch, 24, 8, 8]
+            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1),  # [batch, 24, 8, 8]
             nn.ReLU(True),
-			nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1),  # [batch, 12, 16, 16]
+            nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1),  # [batch, 12, 16, 16]
             nn.ReLU(True),
-            nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1),   # [batch, 3, 32, 32]
+            nn.ConvTranspose2d(32, 3, 4, stride=2, padding=1),  # [batch, 3, 32, 32]
         )
 
     def forward(self, x, return_embs=False):
@@ -224,8 +220,8 @@ def ae_test(epoch, model, retrain=False):
 
     original = torchvision.utils.make_grid(data[:16])
     ae = torchvision.utils.make_grid(output[:16])
-    imsave(original, f'{_image_path}{epoch}_{retrain}_o.jpg')
-    imsave(ae, f'{_image_path}{epoch}_{retrain}_ae.jpg')
+    imsave(original, f"{_image_path}{epoch}_{retrain}_o.jpg")
+    imsave(ae, f"{_image_path}{epoch}_{retrain}_ae.jpg")
 
     return np.mean(loss_ls)
 
@@ -257,6 +253,7 @@ def extract_embedding(model, data_loader):
                     trans_dicts[task_id][t] for t in target.view(-1).tolist()
                 ]
     return ret
+
 
 model_module = Autoencoder
 scores = np.array(
@@ -461,9 +458,7 @@ for i in range(n):
     model2.decoder = model1.decoder
     for param in model2.decoder.parameters():
         param.requires_grad = False
-    optimizer2 = optim.Adam(
-        filter(lambda p: p.requires_grad, model2.parameters()), lr=args["lr"]
-    )
+    optimizer2 = optim.Adam(filter(lambda p: p.requires_grad, model2.parameters()), lr=args["lr"])
     lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer2, factor=0.3, patience=3, verbose=True
     )

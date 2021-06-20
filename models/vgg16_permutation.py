@@ -1,24 +1,25 @@
 from __future__ import print_function
-import pickle, sys, time, copy
+import pickle
+import sys
+import time
+import copy
+from pathlib import Path
+
 import numpy as np
 from tqdm.auto import tqdm
-
 from thundersvm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from lightgbm import LGBMClassifier
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 import torch.utils.data as Data
 import torchvision.models as models
 from torch.autograd import Variable
-from sklearn.metrics import r2_score
 
-from pathlib import Path
+# from sklearn.metrics import r2_score
 
 
 # Hyper Parameters
@@ -74,6 +75,7 @@ transform_test = transforms.Compose(
     ]
 )
 
+
 def get_cifar10():
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10("data", train=True, download=True, transform=transform_train),
@@ -95,6 +97,7 @@ def get_cifar10():
 
 
 # Model
+
 
 class VGG16(nn.Module):
     def __init__(self, emb_size, n_classes=10):
@@ -126,6 +129,7 @@ class VGG16(nn.Module):
         x = self.cls(x)
 
         return x
+
 
 # linear
 class LNet(nn.Module):
@@ -160,6 +164,7 @@ class MLP(nn.Module):
 
 # Utils
 
+
 def train(epoch, model, optimizer, train_loader):
     if epoch % 15 == 0:
         print("Epoch:", epoch)
@@ -174,10 +179,10 @@ def train(epoch, model, optimizer, train_loader):
         loss.backward()
         optimizer.step()
 
+
 def testb(model):
     model.eval()
     with torch.no_grad():
-        test_loss = 0
         correct = 0
         for data, target in test_b_loader:
             data, target = data.to(device), target.to(device)
@@ -205,6 +210,7 @@ def test(model, test_loader, task_id):
             correct += sum((pred == target).tolist())
         print("Accuracy:", correct / len(test_loader.dataset))
     return correct
+
 
 def test2(model, test_loader):
     model.eval()
@@ -555,7 +561,8 @@ for i in range(n):
             scores[jdx][task_id][i][7] = _valid_score
             print(f"LightGBM test acc:{_valid_score:.5f}")
 
-        # 1. calculate features selection using (1 - normalized mse) with embedding_a and embedding_b
+        # 1. calculate features selection using
+        # (1 - normalized mse) with embedding_a and embedding_b
         train_loader, test_loader = get_cifar10()
 
         print("extract embedding of first model")
@@ -577,16 +584,16 @@ for i in range(n):
             "test_x": np.array(emb_test_b["embedding"]),
             "test_y": np.array(emb_test_b["target"]),
         }
-        
+
         _save_path = args["base_dir"] + f"/{i}/yc/" + "embedding_model1_full.pkl"
         with open(_save_path, "wb") as fout:
             pickle.dump(data_a, fout)
-            
+
         _save_path = args["base_dir"] + f"/{i}/yc/" + "embedding_model2_full.pkl"
         with open(_save_path, "wb") as fout:
             pickle.dump(data_b, fout)
 
-        #### r2 score
+        # ----- r2 score
         # r2_score_ls = []
         # for _i in range(data_a['test_x'].shape[1]):
         #     _r2_score = r2_score(data_a['test_x'][:, _i],
@@ -595,7 +602,7 @@ for i in range(n):
 
         # sorted_index = sorted(range(len(r2_score_ls)), key=lambda k: r2_score_ls[k], reverse=True)
 
-        #### output weight
+        # ----- output weight
         # sorted_index = (
         #     torch.sort(torch.abs(model1.cls.weight).mean(dim=0), descending=True)[1]
         #     .detach()
@@ -603,7 +610,7 @@ for i in range(n):
         #     .numpy()
         # )
 
-        #### permutation importance
+        # ----- permutation importance
         x, y = data_a["train_x"], data_a["train_y"][0]
         criterion = nn.CrossEntropyLoss()
 
@@ -640,13 +647,13 @@ for i in range(n):
                         data, target = data.to(device), target.to(device)
                         data, target = Variable(data), Variable(target)
                         output = model1.classify(data)
-                        l = criterion(output, target)
-                        _loss.append(l.item())
+                        _l = criterion(output, target)
+                        _loss.append(_l.item())
                 loss[_feature].append(np.mean(_loss))
 
         loss_ls = [np.mean(v) for k, v in sorted(loss.items())]
         sorted_index = sorted(range(len(loss_ls)), key=lambda k: loss_ls[k], reverse=True)
-        
+
         _save_path = args["base_dir"] + f"/{i}/yc/" + "sorted_index.pkl"
         with open(_save_path, "wb") as fout:
             pickle.dump(sorted_index, fout)
