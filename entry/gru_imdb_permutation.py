@@ -202,7 +202,7 @@ class IMDBDataset(Dataset):
                 for word in words:
                     word_dict[word] = len(word_dict)
 
-                self.embedder = Embedding("/home/itsmystyle/tmp/data/glove.6B.300d.txt", words)
+                self.embedder = Embedding("data/glove.6B.300d.txt", words)
 
                 with open("data/imdb_embedding.pkl", "wb") as fout:
                     pickle.dump(self.embedder, fout)
