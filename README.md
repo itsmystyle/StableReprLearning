@@ -1,8 +1,6 @@
 # StableReprLearning
 
-This repository is the official implementation of [Stable Representation Learning for Neural Network](https://arxiv.org/xxx). 
-
->📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials
+This repository is the official implementation of [Stable Representation Learning for Neural Network](https://arxiv.org/xxx).
 
 ## Requirements
 
@@ -12,30 +10,22 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
->📋  Describe how to set up the environment, e.g. pip/conda/docker commands, download datasets, etc...
+## Run Experiments
 
-## Training
-
-To train the model(s) in the paper, run this command:
+To `train` and `evaluate` the model(s) with `StableReprLearning` framework in the paper, run this command:
 
 ```train
-python train.py --input-data <path_to_data> --alpha 10 --beta 20
+python -m entry.srl_framework.<model> <number_of_experiments: 15> <early_stop_patience: 10>
 ```
 
->📋  Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
-## Results
+To `train` and `evaluate` the model(s) with `Normal` framework, run this command:
+
+```train
+python -m entry.normal_framework.<model> <number_of_experiments: 15> <early_stop_patience: 10>
+```
+
+<!-- ## Results
 
 Our model achieves the following performance on :
 
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
-
-| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
-| ------------------ |---------------- | -------------- |
-| My awesome model   |     85%         |      95%       |
-
->📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
-
-
-## Contributing
-
->📋  Pick a licence and describe how to contribute to your code repository. 
+## Contributing -->
